@@ -17,7 +17,7 @@
 # limitations under the License.
 
 
-from __future__ import with_statement
+
 
 raise ImportError("Not implemented yet.")
 
@@ -49,6 +49,9 @@ if platform.is_windows():
     def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT):
       EventEmitter.__init__(self, event_queue, watch, timeout)
       self._lock = threading.Lock()
+
+    def on_thread_exit(self):
+      pass
 
     def queue_events(self, timeout):
       with self._lock:

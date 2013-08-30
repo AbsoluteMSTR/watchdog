@@ -17,7 +17,7 @@
 # limitations under the License.
 
 
-from __future__ import with_statement
+
 from watchdog.utils import platform
 
 if platform.is_windows():
@@ -66,7 +66,7 @@ if platform.is_windows():
                                                     WATCHDOG_FILE_FLAGS)
       self._buffer = ctypes.create_string_buffer(BUFFER_SIZE)
 
-    def on_thread_stop(self):
+    def on_thread_exit(self):
       close_directory_handle(self._directory_handle)
 
 

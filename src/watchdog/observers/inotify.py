@@ -67,8 +67,9 @@ Some extremely useful articles and documentation:
 
 """
 
-from __future__ import with_statement
+
 from watchdog.utils import platform
+from functools import reduce
 
 if platform.is_linux():
   import os
@@ -525,6 +526,7 @@ if platform.is_linux():
       Closes the inotify instance and removes all associated watches.
       """
       with self._lock:
+        self._remove_all_watches()
         os.close(self._inotify_fd)
 
     def read_events(self, event_buffer_size=DEFAULT_EVENT_BUFFER_SIZE):
@@ -581,21 +583,18 @@ if platform.is_linux():
             # IN_MOVED_TO events which don't pair up with
             # IN_MOVED_FROM events should be marked IN_CREATE
             # instead relative to this directory.
-            try:
-              self._add_watch(src_path, self._event_mask)
-            except OSError:
-              continue
+            self._add_watch(src_path, self._event_mask)
             for root, dirnames, filenames in os.walk(src_path):
               for dirname in dirnames:
-                try:
-                  full_path = absolute_path(os.path.join(root, dirname))
-                  wd_dir = self._add_watch(full_path, self._event_mask)
-                  event_list.append(InotifyEvent(wd_dir,
-                      InotifyConstants.IN_CREATE | InotifyConstants.IN_ISDIR, 0, dirname, full_path))
-                except OSError:
-                  pass
+                full_path = absolute_path(
+                  os.path.join(root, dirname))
+                wd_dir = self._add_watch(full_path, self._event_mask)
+                event_list.append(InotifyEvent(wd_dir,
+                    InotifyConstants.IN_CREATE | InotifyConstants.IN_ISDIR,
+                    0, dirname, full_path))
               for filename in filenames:
-                full_path = absolute_path(os.path.join(root, filename))
+                full_path = absolute_path(
+                  os.path.join(root, filename))
                 wd_parent_dir = self._wd_for_path[absolute_path(os.path.dirname(full_path))]
                 event_list.append(InotifyEvent(wd_parent_dir,
                     InotifyConstants.IN_CREATE, 0, filename, full_path))
@@ -644,6 +643,15 @@ if platform.is_linux():
       self._wd_for_path[path] = wd
       self._path_for_wd[wd] = path
       return wd
+
+    def _remove_all_watches(self):
+      """
+      Removes all watches.
+      """
+      for wd in list(self._wd_for_path.values()):
+        del self._path_for_wd[wd]
+        if inotify_rm_watch(self._inotify_fd, wd) == -1:
+          Inotify._raise_error()
 
     def _remove_watch_bookkeeping(self, path):
       wd = self._wd_for_path.pop(path)
@@ -728,7 +736,7 @@ if platform.is_linux():
       self._lock = threading.Lock()
       self._inotify = Inotify(watch.path, watch.is_recursive)
 
-    def on_thread_stop(self):
+    def on_thread_exit(self):
       self._inotify.close()
 
     def queue_events(self, timeout):

@@ -29,7 +29,7 @@ Classes
    :show-inheritance:
 """
 
-from __future__ import with_statement
+
 
 import time
 import threading
@@ -62,20 +62,15 @@ class PollingEmitter(EventEmitter):
     self._snapshot = DirectorySnapshot(watch.path, watch.is_recursive)
     self._lock = threading.Lock()
 
-  def on_thread_stop(self):
-    with self._lock:
-      self._snapshot = None
+  def on_thread_exit(self):
+    self._snapshot = None
 
 
   def queue_events(self, timeout):
-  # We don't want to hit the disk continuously.
-  # timeout behaves like an interval for polling emitters.
-    time.sleep(timeout)
-
     with self._lock:
-
-      if not self._snapshot:
-        return
+      # We don't want to hit the disk continuously.
+      # timeout behaves like an interval for polling emitters.
+      time.sleep(timeout)
 
       # Get event diff between fresh snapshot and previous snapshot.
       # Update snapshot.
