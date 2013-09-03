@@ -82,8 +82,10 @@ if platform.is_windows():
                                                 src_path))
 
           if action == FILE_ACTION_RENAMED_OLD_NAME:
+            continue
             last_renamed_src_path = src_path
           elif action == FILE_ACTION_RENAMED_NEW_NAME:
+            continue
             dest_path = src_path
             src_path = last_renamed_src_path
 
@@ -109,6 +111,7 @@ if platform.is_windows():
               self.queue_event(FileMovedEvent(src_path, dest_path))
           else:
             if os.path.isdir(src_path):
+              continue
               event = DIR_ACTION_EVENT_MAP[action](src_path)
               if isinstance(event, DirCreatedEvent):
                 # If a directory is moved from outside the watched folder to inside it
