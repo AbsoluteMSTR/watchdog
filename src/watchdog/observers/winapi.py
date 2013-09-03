@@ -153,14 +153,21 @@ if platform.is_windows():
   CloseHandle.argtypes = (
     ctypes.wintypes.HANDLE, # hObject
     )
-
-  CancelIoEx = ctypes.windll.kernel32.CancelIoEx
-  CancelIoEx.restype = ctypes.wintypes.BOOL
-  CancelIoEx.errcheck = _errcheck_bool
-  CancelIoEx.argtypes = (
-    ctypes.wintypes.HANDLE, # hObject
-    ctypes.POINTER(OVERLAPPED) # lpOverlapped
-    )
+  try:
+    CancelIoEx = ctypes.windll.kernel32.CancelIoEx
+    CancelIoEx.restype = ctypes.wintypes.BOOL
+    CancelIoEx.errcheck = _errcheck_bool
+    CancelIoEx.argtypes = (
+      ctypes.wintypes.HANDLE, # hObject
+      ctypes.POINTER(OVERLAPPED) # lpOverlapped
+      )
+  except:
+    CancelIoEx = ctypes.windll.kernel32.CancelIo
+    CancelIoEx.restype = ctypes.wintypes.BOOL
+    CancelIoEx.errcheck = _errcheck_bool
+    CancelIoEx.argtypes = (
+      ctypes.wintypes.HANDLE, # hObject
+      )
 
   CreateEvent = ctypes.windll.kernel32.CreateEventW
   CreateEvent.restype = ctypes.wintypes.HANDLE
