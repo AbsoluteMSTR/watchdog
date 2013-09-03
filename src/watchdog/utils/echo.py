@@ -98,7 +98,8 @@ def echo(fn, write=sys.stdout.write):
     nameless = list(map(repr, v[argcount:]))
     keyword = list(map(format_arg_value, list(k.items())))
     args = positional + defaulted + nameless + keyword
-    write("%s(%s)\n" % (name(fn), ", ".join(args)))
+
+    write("%s(%s)\n" % (name(fn).encode(), ", ".join(args).encode()))
     return fn(*v, **k)
 
   return wrapped
